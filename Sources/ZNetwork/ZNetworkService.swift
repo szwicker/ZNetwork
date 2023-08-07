@@ -36,22 +36,26 @@ class ZNetworkService {
         self.timeout = timeout
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint, body: Codable? = nil) -> AnyPublisher<T, Error> {
-        switch point.method {
-        case .GET: return get(point)
-        case .POST: return post(point, body: body)
-        default: return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher()
-        }
+    func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
+        return call(point)
     }
 }
 
 // MARK: - Service Runable Commands
 extension ZNetworkService {
-    private func get<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
+
+    private func call<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
         let requestString = "\(baseURLString ?? "")\(point.path)"
         guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
         var request = URLRequest(url: url)
         request.httpMethod = point.method.rawValue
+        switch point.encoding {
+        case .url:
+            request.url?.append(queryItems: encodeUrl(params: point.parameters))
+
+        case .json:
+            request.httpBody = encodeJson(params: point.parameters)
+        }
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
 
@@ -66,25 +70,11 @@ extension ZNetworkService {
             .eraseToAnyPublisher()
     }
 
-    private func post<T: Codable>(_ point: ZNetworkPoint, body: Codable? = nil) -> AnyPublisher<T, Error> {
-        let requestString = "\(baseURLString ?? "")\(point.path)"
-        guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
-        var request = URLRequest(url: url)
-        request.httpMethod = point.method.rawValue
-        if let body {
-            request.httpBody = try? JSONEncoder().encode(body)
-        }
-        point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
-        ZNetwork.logger.log(request)
+    private func encodeJson(params: [String: String]) -> Data? {
+        return try? JSONSerialization.data(withJSONObject: params, options: [])
+    }
 
-        return URLSession.shared
-            .dataTaskPublisher(for: request)
-            .map { data, response in
-                ZNetwork.logger.log(response, data: data)
-                return data
-            }
-            .decode(type: T.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+    private func encodeUrl(params: [String: String]) -> [URLQueryItem] {
+        return params.map { URLQueryItem(name: $0.key, value: $0.value) }
     }
 }
