@@ -9,7 +9,7 @@ import Foundation
 
 extension URLRequest {
     public func curlCommand() -> String {
-        guard let url else { return "" }
+        guard let url else { return "noURL" }
         var command = ["curl \"\(url.absoluteString)\""]
 
         if let httpMethod, httpMethod != ZNMethod.GET.rawValue, httpMethod != ZNMethod.HEAD.rawValue {
