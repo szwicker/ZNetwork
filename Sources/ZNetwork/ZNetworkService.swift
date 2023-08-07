@@ -16,6 +16,7 @@ class ZNetworkService {
     // MARK: - Private Properties
     private var baseURL: URL?
     private var baseURLString: String?
+    private var baseComponent: URLComponents?
     private var timeout: TimeInterval?
 
     // MARK: - BaseURL
@@ -34,6 +35,7 @@ class ZNetworkService {
         self.baseURL = urlComp.url
         self.baseURLString = urlComp.string
         self.timeout = timeout
+        self.baseComponent = urlComp
     }
 
     func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
@@ -45,19 +47,18 @@ class ZNetworkService {
 extension ZNetworkService {
 
     private func call<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
-        let requestString = "\(baseURLString ?? "")\(point.path)"
-        guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
-        var request = URLRequest(url: url)
-        request.httpMethod = point.method.rawValue
-        if !point.parameters.isEmpty {
-            switch point.encoding {
-            case .url:
-                request.url?.append(queryItems: encodeUrl(params: point.parameters))
-                
-            case .json:
-                request.httpBody = encodeJson(params: point.parameters)
-            }
+        guard var baseComponent else { fatalError() }
+        if !point.parameters.isEmpty, point.encoding == .url {
+            baseComponent.queryItems = encodeUrl(params: point.parameters)
         }
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { fatalError() }
+        var request = URLRequest(url: url)
+
+        if !point.parameters.isEmpty, point.encoding == .json {
+            request.httpBody = encodeJson(params: point.parameters)
+        }
+
+        request.httpMethod = point.method.rawValue
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
 
