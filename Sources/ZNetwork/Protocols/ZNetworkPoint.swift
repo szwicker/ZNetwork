@@ -7,8 +7,8 @@
 
 public protocol ZNetworkPoint {
     var path: String { get }
-    var method: Method { get }
-    var headers: [Header] { get }
+    var method: ZNMethod { get }
+    var headers: [ZNHeader] { get }
     var parameters: [String: String] { get }
-    var encoding: Encoding { get }
+    var encoding: ZNEncoding { get }
 }
