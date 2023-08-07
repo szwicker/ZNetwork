@@ -46,7 +46,7 @@ class ZNetworkService {
 
 // MARK: - Service Runable Commands
 extension ZNetworkService {
-    private func get<T: Codable>(_ point: ZNetworkPoint, with log: Bool = false) -> AnyPublisher<T, Error> {
+    private func get<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
         let requestString = "\(baseURLString ?? "")\(point.path)"
         guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
         var request = URLRequest(url: url)
@@ -54,23 +54,14 @@ extension ZNetworkService {
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
 
-        if log {
-            return URLSession.shared
-                .dataTaskPublisher(for: request)
-                .map { data, response in
-                    ZNetwork.logger.log(response, data: data)
-                    return data
-                }
-                .decode(type: T.self, decoder: JSONDecoder())
-                .receive(on: DispatchQueue.main)
-                .eraseToAnyPublisher()
-        } else {
-            return URLSession.shared
-                .dataTaskPublisher(for: request)
-                .map(\.data)
-                .decode(type: T.self, decoder: JSONDecoder())
-                .receive(on: DispatchQueue.main)
-                .eraseToAnyPublisher()
-        }
+        return URLSession.shared
+            .dataTaskPublisher(for: request)
+            .map { data, response in
+                ZNetwork.logger.log(response, data: data)
+                return data
+            }
+            .decode(type: T.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
     }
 }
