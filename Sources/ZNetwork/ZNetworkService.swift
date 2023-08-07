@@ -49,12 +49,14 @@ extension ZNetworkService {
         guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
         var request = URLRequest(url: url)
         request.httpMethod = point.method.rawValue
-        switch point.encoding {
-        case .url:
-            request.url?.append(queryItems: encodeUrl(params: point.parameters))
-
-        case .json:
-            request.httpBody = encodeJson(params: point.parameters)
+        if !point.parameters.isEmpty {
+            switch point.encoding {
+            case .url:
+                request.url?.append(queryItems: encodeUrl(params: point.parameters))
+                
+            case .json:
+                request.httpBody = encodeJson(params: point.parameters)
+            }
         }
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
