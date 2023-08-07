@@ -12,12 +12,12 @@ extension URLRequest {
         guard let url else { return "" }
         var command = ["curl \"\(url.absoluteString)\""]
 
-        if let httpMethod, httpMethod != Method.GET.rawValue, httpMethod != Method.HEAD.rawValue {
+        if let httpMethod, httpMethod != ZNMethod.GET.rawValue, httpMethod != ZNMethod.HEAD.rawValue {
             command.append("-x \(httpMethod)")
         }
 
         allHTTPHeaderFields?
-            .filter { $0.key != Header.Cookie.key }
+            .filter { $0.key != ZNHeader.Cookie.key }
             .forEach { command.append("-H '\($0.key): \($0.value)'") }
 
         if let httpBody, let body = String(data: httpBody, encoding: .utf8) {
