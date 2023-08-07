@@ -56,7 +56,10 @@ extension ZNetworkService {
 
         return URLSession.shared
             .dataTaskPublisher(for: request)
-            .map(\.data)
+            .map { data, response in
+                ZNetwork.logger.log(response, data: data)
+                return data
+            }
             .decode(type: T.self, decoder: JSONDecoder())
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
