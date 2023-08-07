@@ -36,7 +36,7 @@ class ZNetworkService {
         self.timeout = timeout
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint, body: Data? = nil) -> AnyPublisher<T, Error> {
+    func run<T: Codable>(_ point: ZNetworkPoint, body: Codable? = nil) -> AnyPublisher<T, Error> {
         switch point.method {
         case .GET: return get(point)
         case .POST: return post(point, body: body)
@@ -66,12 +66,14 @@ extension ZNetworkService {
             .eraseToAnyPublisher()
     }
 
-    private func post<T: Codable>(_ point: ZNetworkPoint, body: Data?) -> AnyPublisher<T, Error> {
+    private func post<T: Codable>(_ point: ZNetworkPoint, body: Codable? = nil) -> AnyPublisher<T, Error> {
         let requestString = "\(baseURLString ?? "")\(point.path)"
         guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
         var request = URLRequest(url: url)
         request.httpMethod = point.method.rawValue
-        request.httpBody = body
+        if let body {
+            request.httpBody = try? JSONEncoder().encode(body)
+        }
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
 
