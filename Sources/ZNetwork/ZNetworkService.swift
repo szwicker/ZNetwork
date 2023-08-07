@@ -64,4 +64,24 @@ extension ZNetworkService {
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
     }
+
+    private func post<T: Codable>(_ point: ZNetworkPoint, body: Data) -> AnyPublisher<T, Error> {
+        let requestString = "\(baseURLString ?? "")\(point.path)"
+        guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
+        var request = URLRequest(url: url)
+        request.httpMethod = point.method.rawValue
+        request.httpBody = body
+        point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+        ZNetwork.logger.log(request)
+
+        return URLSession.shared
+            .dataTaskPublisher(for: request)
+            .map { data, response in
+                ZNetwork.logger.log(response, data: data)
+                return data
+            }
+            .decode(type: T.self, decoder: JSONDecoder())
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
 }
