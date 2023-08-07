@@ -52,6 +52,7 @@ extension ZNetworkService {
         var request = URLRequest(url: url)
         request.httpMethod = point.method.rawValue
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+        ZNetwork.logger.log(request)
 
         return URLSession.shared
             .dataTaskPublisher(for: request)
