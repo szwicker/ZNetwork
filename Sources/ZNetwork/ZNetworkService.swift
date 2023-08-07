@@ -36,9 +36,10 @@ class ZNetworkService {
         self.timeout = timeout
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
+    func run<T: Codable>(_ point: ZNetworkPoint, body: Data? = nil) -> AnyPublisher<T, Error> {
         switch point.method {
         case .GET: return get(point)
+        case .POST: return post(point, body: body)
         default: return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher()
         }
     }
@@ -65,7 +66,7 @@ extension ZNetworkService {
             .eraseToAnyPublisher()
     }
 
-    private func post<T: Codable>(_ point: ZNetworkPoint, body: Data) -> AnyPublisher<T, Error> {
+    private func post<T: Codable>(_ point: ZNetworkPoint, body: Data?) -> AnyPublisher<T, Error> {
         let requestString = "\(baseURLString ?? "")\(point.path)"
         guard let url = URL(string: requestString) else { return Fail(error: ZNetworkError.BadRequest).eraseToAnyPublisher() }
         var request = URLRequest(url: url)

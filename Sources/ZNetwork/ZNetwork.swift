@@ -21,7 +21,7 @@ public class ZNetwork {
         ZNetworkService.shared.configure(with: component, timeout: timeout)
     }
 
-    public func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
-        ZNetworkService.shared.run(point)
+    public func run<T: Codable>(_ point: ZNetworkPoint, body: Data? = nil) -> AnyPublisher<T, Error> {
+        ZNetworkService.shared.run(point, body: body)
     }
 }
