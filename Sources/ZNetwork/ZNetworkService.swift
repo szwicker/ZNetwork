@@ -18,6 +18,7 @@ class ZNetworkService {
     private var baseURLString: String?
     private var baseComponent: URLComponents?
     private var timeout: TimeInterval?
+    private var allowedCharacterSet = CharacterSet.urlQueryAllowed
 
     // MARK: - BaseURL
     func configure(with url: String, timeout: TimeInterval? = nil) {
@@ -36,6 +37,7 @@ class ZNetworkService {
         self.baseURLString = urlComp.string
         self.timeout = timeout
         self.baseComponent = urlComp
+        self.allowedCharacterSet.remove(charactersIn: "=")
     }
 
     func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
@@ -50,6 +52,7 @@ extension ZNetworkService {
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
         }
+        baseComponent.path += point.path
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { fatalError() }
         var request = URLRequest(url: url)
 
@@ -77,6 +80,6 @@ extension ZNetworkService {
     }
 
     private func encodeUrl(params: [String: String]) -> [URLQueryItem] {
-        return params.map { URLQueryItem(name: $0.key, value: $0.value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)) }
+        return params.map { URLQueryItem(name: $0.key, value: $0.value.addingPercentEncoding(withAllowedCharacters: allowedCharacterSet)) }
     }
 }
