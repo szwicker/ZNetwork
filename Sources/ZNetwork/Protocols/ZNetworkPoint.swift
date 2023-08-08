@@ -11,4 +11,5 @@ public protocol ZNetworkPoint {
     var headers: [ZNHeader] { get }
     var parameters: [String: String] { get }
     var encoding: ZNEncoding { get }
+    var hasAuthorization: Bool { get }
 }
