@@ -53,7 +53,7 @@ extension ZNetworkService {
         }
         baseComponent.path += point.path
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { fatalError() }
-        print("Absolute String": \(urlString))
+        print("Absolute String: \(urlString)")
         print("URL: \(url)")
         var request = URLRequest(url: url)
 
