@@ -49,12 +49,9 @@ extension ZNetworkService {
         guard var baseComponent else { fatalError() }
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
-            print("QueryItems: \(baseComponent.queryItems)")
         }
         baseComponent.path += point.path
-        guard let urlString = baseComponent.url?.absoluteString.replacingOccurrences(of: "%3D", with: "="), let url = URL(string: urlString) else { fatalError() }
-        print("Absoulte String: \(urlString)")
-        print("URL: \(url)")
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { fatalError() }
         var request = URLRequest(url: url)
 
         if !point.parameters.isEmpty, point.encoding == .json {
