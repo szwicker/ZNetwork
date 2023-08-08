@@ -9,4 +9,5 @@ public enum LogLevel {
     case none
     case info
     case debug
+    case debugCurl
 }

@@ -19,7 +19,7 @@ class ZNetworkLog {
             logBody(request)
         }
 
-        if logLevel == .debug {
+        if logLevel == .debugCurl {
             logCurl(request)
         }
     }
