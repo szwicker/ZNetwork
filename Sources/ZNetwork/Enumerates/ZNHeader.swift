@@ -16,14 +16,14 @@ extension ZNHeader {
         switch self {
         case .Cookie: return "Cookie"
         case .ContentJson: return "Content-Type"
-        case .AuthBearer: "Authorization"
+        case .AuthBearer: return "Authorization"
         }
     }
 
     var value: String {
         switch self {
         case .ContentJson: return "application/json"
-        case let .AuthBearer(token): "Bearer \(token)"
+        case let .AuthBearer(token): return "Bearer \(token)"
         default: return ""
         }
     }
