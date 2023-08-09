@@ -38,39 +38,49 @@ class ZNetworkService {
         self.baseComponent = urlComp
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
-        return call(point)
+    func run<T: Codable>(_ point: ZNetworkPoint) async -> Result<T, ZNetworkError> {
+        return await call(point)
     }
 }
 
 // MARK: - Service Runable Commands
 extension ZNetworkService {
-    private func call<T: Codable>(_ point: ZNetworkPoint) -> AnyPublisher<T, Error> {
-        guard var baseComponent else { fatalError() }
+    private func call<T: Codable>(_ point: ZNetworkPoint) async -> Result<T, ZNetworkError> {
+        guard var baseComponent else { return .failure(.invalidURL) }
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
         }
         baseComponent.path += point.path
-        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { fatalError() }
-        var request = URLRequest(url: url)
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
 
+        var request = URLRequest(url: url)
         if !point.parameters.isEmpty, point.encoding == .json {
             request.httpBody = encodeJson(params: point.parameters)
         }
-
         request.httpMethod = point.method.rawValue
         point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
         ZNetwork.logger.log(request)
 
-        return URLSession.shared
-            .dataTaskPublisher(for: request)
-            .map { data, response in
-                ZNetwork.logger.log(response, data: data)
-                return data
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request, delegate: nil)
+            guard let response = response as? HTTPURLResponse else {
+                return .failure(.noResponse)
             }
-            .decode(type: T.self, decoder: JSONDecoder())
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
+            ZNetwork.logger.log(response, data: data)
+            switch response.statusCode {
+            case 200...299:
+                guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
+                    return .failure(.decode)
+                }
+                return .success(decodedResponse)
+            case 401:
+                return .failure(.unauthorized)
+            default:
+                return .failure(.unexpectedStatusCode)
+            }
+        } catch {
+            return .failure(.unknown)
+        }
     }
 
     private func encodeJson(params: [String: String]) -> Data? {
