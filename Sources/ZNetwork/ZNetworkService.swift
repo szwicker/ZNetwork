@@ -46,12 +46,12 @@ class ZNetworkService {
 // MARK: - Service Runable Commands
 extension ZNetworkService {
     private func call<T: Codable>(_ point: ZNetworkPoint) async -> Result<T, ZNetworkError> {
-        guard var baseComponent else { return .failure(.invalidURL) }
+        guard var baseComponent else { return .failure(.invalidURL(0)) }
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
         }
         baseComponent.path += point.path
-        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL(0)) }
 
         var request = URLRequest(url: url)
         if !point.parameters.isEmpty, point.encoding == .json {
@@ -64,22 +64,26 @@ extension ZNetworkService {
         do {
             let (data, response) = try await URLSession.shared.data(for: request, delegate: nil)
             guard let response = response as? HTTPURLResponse else {
-                return .failure(.noResponse)
+                return .failure(.noResponse(0))
             }
             ZNetwork.logger.log(response, data: data)
             switch response.statusCode {
             case 200...299:
                 guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
-                    return .failure(.decode)
+                    return .failure(.decode(response.statusCode))
                 }
                 return .success(decodedResponse)
             case 401:
-                return .failure(.unauthorized)
+                return .failure(.unauthorized(response.statusCode))
+
+            case 404:
+                return .failure(.noData(response.statusCode))
+
             default:
-                return .failure(.unexpectedStatusCode)
+                return .failure(.unexpectedStatusCode(response.statusCode))
             }
         } catch {
-            return .failure(.unknown)
+            return .failure(.unknown(0))
         }
     }
 
