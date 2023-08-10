@@ -31,24 +31,25 @@ class ZNetworkLog {
         }
 
         if logLevel == .debug {
-            print("ZNetwork Response DebugData: \(String(decoding: data, as: UTF8.self))")
+            print("ZNetwork Response:\n \(String(decoding: data, as: UTF8.self))")
         }
     }
 
     // MARK: - Private Functions
     private func logHeaders(_ request: URLRequest) {
         guard let headerFields = request.allHTTPHeaderFields else { return }
-        headerFields.forEach { print("ZNetwork Headers: \($0.key): \($0.value)") }
+        print("ZNetwork Headers:\n")
+        headerFields.forEach { print("[key: \"\($0.key)\"]: \"\($0.value)\"") }
     }
 
     private func logBody(_ request: URLRequest) {
         guard let body = request.httpBody, let string = String(data: body, encoding: .utf8) else { return }
-        print("ZNetwork Body: \(string)")
+        print("ZNetwork Body:\n\(string)")
     }
 
     private func logStatusCodeUrl(_ response: HTTPURLResponse) {
         guard let url = response.url else { return }
-        print("ZNetwork StatusCode & URL: \(response.statusCode) - '\(url.absoluteString)'")
+        print("ZNetwork StatusCode: \(response.statusCode)")
     }
 
     private func logCurl(_ request: URLRequest) {
