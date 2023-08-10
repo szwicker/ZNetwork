@@ -32,7 +32,7 @@ class ZNetworkLog {
 
         if logLevel == .debug {
             print("ZNetwork Response:")
-            dump(String(decoding: data, as: UTF8.self))
+            print(String(decoding: data, as: UTF8.self))
         }
     }
 
@@ -46,7 +46,7 @@ class ZNetworkLog {
     private func logBody(_ request: URLRequest) {
         guard let body = request.httpBody, let string = String(data: body, encoding: .utf8) else { return }
         print("ZNetwork Body:")
-        dump(string)
+        print(string)
     }
 
     private func logStatusCodeUrl(_ response: HTTPURLResponse) {
