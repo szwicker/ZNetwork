@@ -50,7 +50,6 @@ class ZNetworkLog {
     }
 
     private func logStatusCodeUrl(_ response: HTTPURLResponse) {
-        guard let url = response.url else { return }
         print("ZNetwork StatusCode: \(response.statusCode)")
     }
 

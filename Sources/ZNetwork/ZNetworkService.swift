@@ -38,20 +38,20 @@ class ZNetworkService {
         self.baseComponent = urlComp
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint) async -> Result<T, ZNetworkError> {
-        return await call(point)
+    func run<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T, ZNetworkError> {
+        return await call(point, error: error)
     }
 }
 
 // MARK: - Service Runable Commands
 extension ZNetworkService {
-    private func call<T: Codable>(_ point: ZNetworkPoint) async -> Result<T, ZNetworkError> {
-        guard var baseComponent else { return .failure(.invalidURL(0)) }
+    private func call<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T, ZNetworkError> {
+        guard var baseComponent else { return .failure(.invalidURL) }
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
         }
         baseComponent.path += point.path
-        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL(0)) }
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
 
         var request = URLRequest(url: url)
         if !point.parameters.isEmpty, point.encoding == .json {
@@ -64,26 +64,35 @@ extension ZNetworkService {
         do {
             let (data, response) = try await URLSession.shared.data(for: request, delegate: nil)
             guard let response = response as? HTTPURLResponse else {
-                return .failure(.noResponse(0))
+                return .failure(.noResponse)
             }
             ZNetwork.logger.log(response, data: data)
             switch response.statusCode {
             case 200...299:
                 guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
-                    return .failure(.decode(response.statusCode))
+                    return .failure(.decode)
                 }
                 return .success(decodedResponse)
             case 401:
-                return .failure(.unauthorized(response.statusCode))
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.unauthorized(decodedError))
 
             case 404:
-                return .failure(.noData(response.statusCode))
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.noData(decodedError))
 
             default:
-                return .failure(.unexpectedStatusCode(response.statusCode))
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.unexpectedStatusCode(decodedError))
             }
         } catch {
-            return .failure(.unknown(0))
+            return .failure(.unknown)
         }
     }
 
