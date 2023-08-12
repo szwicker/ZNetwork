@@ -69,9 +69,7 @@ extension ZNetworkService {
             ZNetwork.logger.log(response, data: data)
             switch response.statusCode {
             case 204:
-                guard let emptyResponse = try? JSONDecoder().decode(T.self, from: Data()) else {
-                    return .failure(.decode)
-                }
+                let emptyResponse = try! JSONDecoder().decode(T.self, from: Data())
                 return .success(emptyResponse)
             case 200...299:
                 guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
