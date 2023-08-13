@@ -43,7 +43,7 @@ class ZNetworkService {
     }
 
     func runEmpty(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<Bool, ZNetworkError> {
-        return await call(point, error: error)
+        return await callEmpty(point, error: error)
     }
 }
 
