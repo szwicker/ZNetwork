@@ -21,7 +21,7 @@ public class ZNetwork {
         ZNetworkService.shared.configure(with: component, timeout: timeout)
     }
 
-    public func run<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T, ZNetworkError> {
+    public func run<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T?, ZNetworkError> {
         await ZNetworkService.shared.run(point, error: error)
     }
 }

@@ -38,14 +38,14 @@ class ZNetworkService {
         self.baseComponent = urlComp
     }
 
-    func run<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T, ZNetworkError> {
+    func run<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T?, ZNetworkError> {
         return await call(point, error: error)
     }
 }
 
 // MARK: - Service Runable Commands
 extension ZNetworkService {
-    private func call<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T, ZNetworkError> {
+    private func call<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<T?, ZNetworkError> {
         guard var baseComponent else { return .failure(.invalidURL) }
         if !point.parameters.isEmpty, point.encoding == .url {
             baseComponent.queryItems = encodeUrl(params: point.parameters)
@@ -69,7 +69,7 @@ extension ZNetworkService {
             ZNetwork.logger.log(response, data: data)
             switch response.statusCode {
             case 204:
-                let emptyResponse = try! JSONDecoder().decode(T.self, from: Data())
+                let emptyResponse = try? JSONDecoder().decode(T.self, from: Data())
                 return .success(emptyResponse)
             case 200...299:
                 guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
