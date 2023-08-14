@@ -12,6 +12,7 @@ public enum ZNHeader: Equatable {
     case ContentJson
     case AuthBearer(String)
     case FormData(String)
+    case Encoding
 }
 
 extension ZNHeader {
@@ -20,6 +21,7 @@ extension ZNHeader {
         case .Cookie: return "Cookie"
         case .ContentJson, .FormData: return "Content-Type"
         case .AuthBearer: return "Authorization"
+        case .Encoding: return "Content-Transfer-Encoding"
         }
     }
 
@@ -28,6 +30,7 @@ extension ZNHeader {
         case .ContentJson: return "application/json"
         case let .AuthBearer(token): return "Bearer \(token)"
         case let .FormData(uuid): return "multipart/form-data; boundary=\(uuid)"
+        case .Encoding: return "base64"
         default: return ""
         }
     }
