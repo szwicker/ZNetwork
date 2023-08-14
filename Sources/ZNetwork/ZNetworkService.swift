@@ -205,7 +205,7 @@ extension ZNetworkService {
 
         var fullData = Data()
 
-        if let data = "\r\n--\(boundary)\r\n".data(using: .utf8) {
+        if let data = "--\(boundary)\r\n".data(using: .utf8) {
             fullData.append(data)
         }
 
