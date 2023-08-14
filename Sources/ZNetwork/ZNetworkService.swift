@@ -58,9 +58,7 @@ extension ZNetworkService {
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
 
         var request = URLRequest(url: url)
-        if point.headers.contains(where: { $0 == .FormData }) {
-            request.httpBody = encodeImage(params: point.parameters)
-        } else if !point.parameters.isEmpty, point.encoding == .json {
+        if !point.parameters.isEmpty, point.encoding == .json {
             request.httpBody = encodeJson(params: point.parameters)
         }
         request.httpMethod = point.method.rawValue
@@ -111,9 +109,7 @@ extension ZNetworkService {
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
 
         var request = URLRequest(url: url)
-        if point.headers.contains(where: { $0 == .FormData }) {
-            request.httpBody = encodeImage(params: point.parameters)
-        } else if !point.parameters.isEmpty, point.encoding == .json {
+        if !point.parameters.isEmpty, point.encoding == .json {
             request.httpBody = encodeJson(params: point.parameters)
         }
         request.httpMethod = point.method.rawValue
@@ -144,12 +140,6 @@ extension ZNetworkService {
         } catch {
             return .failure(.unknown)
         }
-    }
-
-    private func encodeImage(params: [String: String]) -> Data? {
-        guard let image = params.first else { return nil }
-        let bodyString = "{\"\(image.key)\": \"\(image.value)\"}"
-        return bodyString.data(using: .utf8)
     }
 
     private func encodeJson(params: [String: String]) -> Data? {
