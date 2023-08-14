@@ -9,6 +9,7 @@ public enum ZNHeader {
     case Cookie
     case ContentJson
     case AuthBearer(String)
+    case FormData
 }
 
 extension ZNHeader {
@@ -17,6 +18,7 @@ extension ZNHeader {
         case .Cookie: return "Cookie"
         case .ContentJson: return "Content-Type"
         case .AuthBearer: return "Authorization"
+        case .FormData: return "Content-Type"
         }
     }
 
@@ -24,6 +26,7 @@ extension ZNHeader {
         switch self {
         case .ContentJson: return "application/json"
         case let .AuthBearer(token): return "Bearer \(token)"
+        case .FormData: return "multipart/form-data"
         default: return ""
         }
     }
