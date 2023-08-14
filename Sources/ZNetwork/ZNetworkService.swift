@@ -209,7 +209,7 @@ extension ZNetworkService {
             fullData.append(data)
         }
 
-        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"\(fileName + ".jpeg")\"\r\n".data(using: .utf8) {
+        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"\(fileName + ".jpeg")\";\r\n".data(using: .utf8) {
             fullData.append(data)
         }
 
