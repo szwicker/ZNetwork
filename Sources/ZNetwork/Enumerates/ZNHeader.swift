@@ -5,7 +5,7 @@
 //  Created by Simon Zwicker on 07.08.23.
 //
 
-public enum ZNHeader {
+public enum ZNHeader: Equatable {
     case Cookie
     case ContentJson
     case AuthBearer(String)
