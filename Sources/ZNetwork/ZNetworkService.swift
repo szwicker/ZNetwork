@@ -203,28 +203,13 @@ extension ZNetworkService {
 
     private func encodeImage(fileName: String, image: String, parameter: String, boundary: String) -> Data? {
 
-        var fullData = Data()
+        var bodyString = ""
+        bodyString += "--\(boundary)\r\n"
+        bodyString += "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"imagefile.jpg\"\r\n"
+        bodyString += "Content-Type: image/jpeg\r\n\r\n"
+        bodyString += image
+        bodyString += "\r\n--\(boundary)--\r\n"
 
-        if let data = "--\(boundary)".data(using: .utf8) {
-            fullData.append(data)
-        }
-
-        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"imagefile.jpg\"\r\n".data(using: .utf8) {
-            fullData.append(data)
-        }
-
-        if let data = "Content-Type: image/jpeg".data(using: .utf8) {
-            fullData.append(data)
-        }
-
-        if let data = image.data(using: .utf8) {
-            fullData.append(data)
-        }
-
-        if let data = "--\(boundary)--".data(using: .utf8) {
-            fullData.append(data)
-        }
-
-        return fullData
+        return bodyString.data(using: .utf8)
     }
 }
