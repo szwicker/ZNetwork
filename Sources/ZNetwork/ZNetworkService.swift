@@ -201,7 +201,7 @@ extension ZNetworkService {
         return params.map { URLQueryItem(name: $0.key, value: $0.value) }
     }
 
-    private func encodeImage(fileName: String, image: String, parameter: String, boundary: String) -> Data {
+    private func encodeImage(fileName: String, image: String, parameter: String, boundary: String) -> Data? {
 
         var fullData = Data()
 
@@ -209,7 +209,7 @@ extension ZNetworkService {
             fullData.append(data)
         }
 
-        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8) {
+        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"\(fileName).jpeg\"\r\n".data(using: .utf8) {
             fullData.append(data)
         }
 
