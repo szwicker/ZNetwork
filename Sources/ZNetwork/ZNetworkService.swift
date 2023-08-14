@@ -45,6 +45,10 @@ class ZNetworkService {
     func runEmpty(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<Bool, ZNetworkError> {
         return await callEmpty(point, error: error)
     }
+
+    func runImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: String, parameter: String) async -> Result<T, ZNetworkError> {
+        return await callImage(point, error: error, fileName: fileName, image: image, parameter: parameter)
+    }
 }
 
 // MARK: - Service Runable Commands
@@ -142,11 +146,85 @@ extension ZNetworkService {
         }
     }
 
+    private func callImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: String, parameter: String) async -> Result<T, ZNetworkError> {
+        guard var baseComponent else { return .failure(.invalidURL) }
+        baseComponent.path += point.path
+        guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = point.method.rawValue
+        point.headers.forEach { request.setValue($0.value, forHTTPHeaderField: $0.key) }
+        request.httpBody = encodeImage(fileName: fileName, image: image, parameter: parameter, boundary: point.boundary)
+
+        ZNetwork.logger.log(request)
+
+        do {
+            let (data, response) = try await URLSession.shared.data(for: request, delegate: nil)
+            guard let response = response as? HTTPURLResponse else {
+                return .failure(.noResponse)
+            }
+            ZNetwork.logger.log(response, data: data)
+            switch response.statusCode {
+            case 200...299:
+                guard let decodedResponse = try? JSONDecoder().decode(T.self, from: data) else {
+                    return .failure(.decode)
+                }
+                return .success(decodedResponse)
+            case 401:
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.unauthorized(decodedError))
+
+            case 404:
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.noData(decodedError))
+
+            default:
+                guard let decodedError = try? JSONDecoder().decode(error, from: data) else {
+                    return .failure(.decode)
+                }
+                return .failure(.unexpectedStatusCode(decodedError))
+            }
+        } catch {
+            return .failure(.unknown)
+        }
+    }
+
     private func encodeJson(params: [String: String]) -> Data? {
         return try? JSONSerialization.data(withJSONObject: params, options: [])
     }
 
     private func encodeUrl(params: [String: String]) -> [URLQueryItem] {
         return params.map { URLQueryItem(name: $0.key, value: $0.value) }
+    }
+
+    private func encodeImage(fileName: String, image: String, parameter: String, boundary: String) -> Data {
+
+        var fullData = Data()
+
+        if let data = "\r\n--\(boundary)\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"\(fileName)\"\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = "Content-Type: image/jpeg\r\n\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = image.data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = "\r\n--\(boundary)--\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        return fullData
     }
 }

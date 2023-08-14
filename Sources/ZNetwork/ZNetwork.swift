@@ -28,4 +28,8 @@ public class ZNetwork {
     public func runEmpty(_ point: ZNetworkPoint, error: Codable.Type) async -> Result<Bool, ZNetworkError> {
         await ZNetworkService.shared.runEmpty(point, error: error)
     }
+
+    public func runImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: String, parameter: String) async -> Result<T, ZNetworkError> {
+        await ZNetworkService.shared.runImage(point, error: error, fileName: fileName, image: image, parameter: parameter)
+    }
 }

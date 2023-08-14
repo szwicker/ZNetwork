@@ -11,18 +11,15 @@ public enum ZNHeader: Equatable {
     case Cookie
     case ContentJson
     case AuthBearer(String)
-    case FormData
-    case Boundary
+    case FormData(String)
 }
 
 extension ZNHeader {
     var key: String {
         switch self {
         case .Cookie: return "Cookie"
-        case .ContentJson: return "Content-Type"
+        case .ContentJson, .FormData: return "Content-Type"
         case .AuthBearer: return "Authorization"
-        case .FormData: return "Content-Type"
-        case .Boundary: return "boundary"
         }
     }
 
@@ -30,8 +27,7 @@ extension ZNHeader {
         switch self {
         case .ContentJson: return "application/json"
         case let .AuthBearer(token): return "Bearer \(token)"
-        case .FormData: return "multipart/form-data"
-        case .Boundary: return UUID().uuidString
+        case let .FormData(uuid): return "multipart/form-data; boundary=\(uuid)"
         default: return ""
         }
     }
