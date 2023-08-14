@@ -46,7 +46,7 @@ class ZNetworkService {
         return await callEmpty(point, error: error)
     }
 
-    func runImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: String, parameter: String) async -> Result<T, ZNetworkError> {
+    func runImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: Data, parameter: String) async -> Result<T, ZNetworkError> {
         return await callImage(point, error: error, fileName: fileName, image: image, parameter: parameter)
     }
 }
@@ -146,7 +146,7 @@ extension ZNetworkService {
         }
     }
 
-    private func callImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: String, parameter: String) async -> Result<T, ZNetworkError> {
+    private func callImage<T: Codable>(_ point: ZNetworkPoint, error: Codable.Type, fileName: String, image: Data, parameter: String) async -> Result<T, ZNetworkError> {
         guard var baseComponent else { return .failure(.invalidURL) }
         baseComponent.path += point.path
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
@@ -201,15 +201,28 @@ extension ZNetworkService {
         return params.map { URLQueryItem(name: $0.key, value: $0.value) }
     }
 
-    private func encodeImage(fileName: String, image: String, parameter: String, boundary: String) -> Data? {
+    private func encodeImage(fileName: String, image: Data, parameter: String, boundary: String) -> Data? {
 
-        var bodyString = ""
-        bodyString += "--\(boundary)\r\n"
-        bodyString += "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"imagefile.jpg\"\r\n"
-        bodyString += "Content-Type: image/jpeg;base64\r\n\r\n"
-        bodyString += image
-        bodyString += "\r\n--\(boundary)--\r\n"
+        var fullData = Data()
 
-        return bodyString.data(using: .utf8)
+        if let data = "\r\n--\(boundary)\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"imagefile.jpg\"\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        if let data = "Content-Type: image/jpeg\r\n\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        fullData.append(image)
+
+        if let data = "\r\n--\(boundary)--\r\n".data(using: .utf8) {
+            fullData.append(data)
+        }
+
+        return fullData
     }
 }
