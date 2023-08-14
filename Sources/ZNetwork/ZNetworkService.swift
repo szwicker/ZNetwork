@@ -205,7 +205,7 @@ extension ZNetworkService {
 
         var fullData = Data()
 
-        if let data = "--\(boundary)\r\n".data(using: .utf8) {
+        if let data = "--\(boundary)".data(using: .utf8) {
             fullData.append(data)
         }
 
@@ -213,7 +213,7 @@ extension ZNetworkService {
             fullData.append(data)
         }
 
-        if let data = "Content-Type: image/jpeg\r\n\r\n".data(using: .utf8) {
+        if let data = "Content-Type: image/jpeg".data(using: .utf8) {
             fullData.append(data)
         }
 
@@ -221,7 +221,7 @@ extension ZNetworkService {
             fullData.append(data)
         }
 
-        if let data = "\r\n--\(boundary)--\r\n".data(using: .utf8) {
+        if let data = "--\(boundary)--".data(using: .utf8) {
             fullData.append(data)
         }
 
