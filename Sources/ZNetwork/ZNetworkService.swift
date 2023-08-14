@@ -58,7 +58,9 @@ extension ZNetworkService {
         guard let urlString = baseComponent.url?.absoluteString, let url = URL(string: urlString) else { return .failure(.invalidURL) }
 
         var request = URLRequest(url: url)
-        if !point.parameters.isEmpty, point.encoding == .json {
+        if point.headers.contains(where: { $0 == .FormData }) {
+            request.httpBody = encodeImage(params: point.parameters)
+        } else if !point.parameters.isEmpty, point.encoding == .json {
             request.httpBody = encodeJson(params: point.parameters)
         }
         request.httpMethod = point.method.rawValue
