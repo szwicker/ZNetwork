@@ -206,7 +206,7 @@ extension ZNetworkService {
         var bodyString = ""
         bodyString += "--\(boundary)\r\n"
         bodyString += "Content-Disposition: form-data; name=\"\(parameter)\"; filename=\"imagefile.jpg\"\r\n"
-        bodyString += "Content-Type: image/jpeg\r\n\r\n"
+        bodyString += "Content-Type: image/jpeg;base64\r\n\r\n"
         bodyString += image
         bodyString += "\r\n--\(boundary)--\r\n"
 
