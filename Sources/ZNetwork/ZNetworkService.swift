@@ -193,12 +193,12 @@ extension ZNetworkService {
         }
     }
 
-    private func encodeJson(params: [String: String]) -> Data? {
+    private func encodeJson(params: [String: Any]) -> Data? {
         return try? JSONSerialization.data(withJSONObject: params, options: [])
     }
 
-    private func encodeUrl(params: [String: String]) -> [URLQueryItem] {
-        return params.map { URLQueryItem(name: $0.key, value: $0.value) }
+    private func encodeUrl(params: [String: Any]) -> [URLQueryItem] {
+        return params.map { URLQueryItem(name: $0.key, value: $0.value as? String) }
     }
 
     private func encodeImage(fileName: String, image: Data, parameter: String, boundary: String) -> Data? {
